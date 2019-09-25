@@ -2,6 +2,7 @@
 .idea/deploy.iml
 .idea/jsLibraryMappings.xml
 .idea/misc.xml
+.idea/vcs.xml
 .idea/modules.xml
 .vscode/
 node_modules/
