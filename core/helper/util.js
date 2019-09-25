@@ -3,23 +3,27 @@ const fs = require('fs'),
 
 
 function getFile(item, filePath, cb) {
+  try {
+    if(item) {
+      filePath += `/${item}`;
+    }
 
-  if(item) {
-    filePath += `/${item}`;
-  }
-  
-  filePath = path.normalize(filePath);
+    filePath = path.normalize(filePath);
 
-  let fileItem = fs.statSync(filePath);
+    let fileItem = fs.statSync(filePath);
 
-  if (fileItem.isFile()) {
-    cb(filePath);
-    return;
-  }
-  
-  let readItem = fs.readdirSync(filePath);
-  for(let item of readItem) {
-    getFile(item, filePath, cb);
+    if (fileItem.isFile()) {
+      cb(filePath);
+      return;
+    }
+
+    let readItem = fs.readdirSync(filePath);
+    for(let item of readItem) {
+      getFile(item, filePath, cb);
+    }
+  } catch(error) {
+    console.log(`Erro ao obter arquivo: ${error}`);
+    cb(null);
   }
 }
 
