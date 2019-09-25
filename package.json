@@ -1,0 +1,20 @@
+{
+  "name": "occ-tools-deploy",
+  "version": "0.0.1",
+  "description": "Ferramenta para ações de deploy no OCC",
+  "main": "index.js",
+  "preferGlobal": true,
+  "bin": {
+    "occtls": "index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "Thiago Adriano",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^3.0.1",
+    "winston": "^3.2.1"
+  }
+}
