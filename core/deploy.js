@@ -90,18 +90,21 @@ function callbackPathFile(filePath) {
   deployFile(filePath);
 }
 
-function setStatus(file, status) {
+function setStatus(file, status, dataFail) {
   let queryFile = file.replace(configs.ENV.DEPLOY_TO, '');
   
   for (let report of reportFiles) {
-    if (report.file === queryFile) {
+    if (report.file === queryFile && report.status !== STATUS.ERROR) {
       report.status = status;
+
+      if (dataFail) report.msg = dataFail;
     }
   }
 }
 
 function populateDeployInfoFile() {
   if (totalFiles === reportFiles.length) {
+    console.log('Preparando arquivo do resultado de deploy...');
     try {
       let fileControl = path.normalize(`${configs.FOLDERS.ROOT_FOLDER}/${configs.NAME_FILE_DEPLOY_CONTROL}`),
           readFile = fs.readFileSync(fileControl),
@@ -113,12 +116,14 @@ function populateDeployInfoFile() {
         if (report.status === STATUS.FINISH) {
           listDeploy.success.push(nameFile);
         } else if (report.status === STATUS.ERROR) {
-          listDeploy.error.push(nameFile);
+          listDeploy.error.push({file: nameFile, msg: report.msg });
         }
       });
 
       contentFile += generateLogFile(listDeploy.success, listDeploy.error);
       fs.writeFileSync(fileControl, contentFile);
+
+      console.log('Deploy Concluído!');
     } catch (err) {
       console.log(`Erro em atualizar o log de deploy: ${err}`);
       process.exit(1);
@@ -135,8 +140,8 @@ function generateLogFile(listSuccess, listError) {
   * ${listSuccess.join(`
   * `)}
   > Arquivos com falha no envio:
-  * ${listError.join(`
-  * `)}
+  ${listError.reduce((amount, item) => amount += `* ${item.file} *(${item.msg})*
+  `, '')}
   
   `;
 }
@@ -146,6 +151,7 @@ function Main() {
 
   credentialUse = CREDENTIALS[configs.ENV.AMB];
 
+  console.log('Iniciando processo de deploy...');
   for(let item of itensInDir) {
     if (!item.includes('.ccc')) {
       util.getFile(item, configs.ENV.DEPLOY_TO, callbackPathFile);

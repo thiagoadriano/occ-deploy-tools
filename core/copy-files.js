@@ -20,18 +20,20 @@ function prepareWidgetPath(list) {
 
   let pathWidgetCCC = path.normalize(`${configs.ENV.DEPLOY_FROM}.ccc/widget/${widget}`);
   let pathInstanceCCC = path.normalize(`${pathWidgetCCC}/instances/${instance}`);
-  
-  util.getFile('', pathInstanceDeploy, addFileInList.bind(null, filesToDeploy, false));
+
+  if (instance) {
+    util.getFile('', pathInstanceDeploy, addFileInList.bind(null, filesToDeploy, false));
+    util.getFile('', pathInstanceBackup, addFileInList.bind(null, filesToBackup, false));
+    util.getFile('', pathInstanceCCC, addFileInList.bind(null, filesCCCToDeploy, false));
+  }
+
   util.getFile('', pathWidgetDeploy, addFileInList.bind(null, filesToDeploy, true));
-
-  util.getFile('', pathInstanceBackup, addFileInList.bind(null, filesToBackup, false));
   util.getFile('', pathWidgetBackup, addFileInList.bind(null, filesToBackup, true));
-
-  util.getFile('', pathInstanceCCC, addFileInList.bind(null, filesCCCToDeploy, false));
   util.getFile('', pathWidgetCCC, addFileInList.bind(null, filesCCCToDeploy, true));
 }
 
 function addFileInList(list, notInstance, filePath) {
+  if (!filePath) return;
   if(notInstance && filePath.includes('instances')) return;
   list.add(filePath);
 }
@@ -85,9 +87,16 @@ function generatePaths(list) {
 
 function Main(list = []) {
   if (list.length > 0 && list[0]) {
+    console.log('Iniciando separação de arquivos...');
     generatePaths(list);
+
+    console.log('Copiando os arquivos de rollback...');
     execCopyFile(filesToBackup, configs.ENV.BACKUP_FROM, configs.ENV.BACKUP_TO);
+
+    console.log('Copiando os arquivos para deploy...');
     execCopyFile(filesToDeploy, configs.ENV.DEPLOY_FROM, configs.ENV.DEPLOY_TO);
+
+    console.log('Copiando os arquivos de versionamento do occ...');
     copyFileCCC();
   }
 }

@@ -13,6 +13,7 @@ function initFluxDeploy(notGrab = false) {
   
   let fileProp = path.normalize(`${configs.FOLDERS.ROOT_FOLDER}/${configs.NAME_FILE_PROPERTIES}`);
 
+  console.log('Checando informações no arquivo de deploy');
   fs.readFile(fileProp, (err, data) => {
     if(err) {
       console.log(err);
@@ -35,6 +36,7 @@ function initFluxDeploy(notGrab = false) {
       copyFiles(listContent);
       deploy();
     } else {
+      console.log('Iniciando Grab...');
       grabs(() => {
         copyFiles(listContent);
         deploy();
@@ -108,7 +110,7 @@ function createStructureDeploy() {
   try {
     fs.statSync(fileProp);
   } catch (e) {
-    fs.writeFileSync(fileControl, '');
+    fs.writeFileSync(fileProp, '');
   }
 
   try {
@@ -119,8 +121,13 @@ function createStructureDeploy() {
 }
 
 function Main(amb) {
+  console.log('Configurando data e hora');
   configExecutionTimer();
+
+  console.log('Configurando dados de ambientes');
   configEnv(amb);
+
+  console.log('Configurando estrutura de diretórios');
   createStructureDeploy();
 }
 
