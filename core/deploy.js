@@ -4,7 +4,8 @@ const fs = require('fs'),
       CREDENTIALS = require('./constants/credentials'),
       configs = require('./constants/configs'),
       util = require('./helper/util'),
-      { loggerDeploy } = require('./helper/logger');
+      { loggerDeploy } = require('./helper/logger'),
+      {printStep, printInfo, printError} = require('./helper/print-console');
 
 const STATUS = {
   NOT_STARTED: 0, 0: 'NOT_STARTED',
@@ -32,42 +33,33 @@ function deployFile(file) {
 }
 
 function logStream(file, data) {
-  console.log(`Fluxo de envio: 
-  ${data.toString()}`);
-  loggerDeploy.info(`
-    Fluxo de envio:
-    ${data.toString()}
-  `);
+  let msg = `Fluxo de envio: ${data.toString()}`;
+  
+  printInfo(msg);
+  loggerDeploy.info(msg);
 
   if (data.includes('encontrado na interface de administração do Commerce Cloud de destino') && data.includes('A operação demorou')) {
     setStatus(file, STATUS.SENT);
-  } 
-  
+  }
   else if (data.includes('Enviando')) {
     setStatus(file, STATUS.IN_PROGRESS);
-  } 
-    
+  }
 }
 
 function logError(file, data) {
-  console.error(`Erro ao enviar o arquivo: ${file} 
-  ${data.toString()}`);
-  loggerDeploy.error(`
-  Erro ao enviar o arquivo ${file}
-  ${data.toString()}
-  `);
+  let msg = `Erro ao enviar o arquivo: ${file} | ${data.toString()}`;
+  printError(msg);
+  loggerDeploy.error(msg);
+
   if (!data.includes('Invalid operation on a non-internationalized Widget')) {
     setStatus(file, STATUS.ERROR, data);
   }
 }
 
 function logClose(file, code) {
-  console.log(`
-  Processo finalizado para o arquivo ${file} com código ${code}
-  `);
-  loggerDeploy.info(`
-  Processo finalizado para o arquivo ${file} com código ${code}
-  `);
+  let msg = `Processo finalizado para o arquivo ${file} com código ${code}`;
+  printInfo(msg);
+  loggerDeploy.info(msg);
 
   totalFiles++;
 
@@ -104,7 +96,7 @@ function setStatus(file, status, dataFail) {
 
 function populateDeployInfoFile() {
   if (totalFiles === reportFiles.length) {
-    console.log('Preparando arquivo do resultado de deploy...');
+    printStep('Preparando arquivo do resultado de deploy...');
     try {
       let fileControl = path.normalize(`${configs.FOLDERS.ROOT_FOLDER}/${configs.NAME_FILE_DEPLOY_CONTROL}`),
           readFile = fs.readFileSync(fileControl),
@@ -123,9 +115,9 @@ function populateDeployInfoFile() {
       contentFile += generateLogFile(listDeploy.success, listDeploy.error);
       fs.writeFileSync(fileControl, contentFile);
 
-      console.log('Deploy Concluído!');
+      printInfo('Deploy Concluído!');
     } catch (err) {
-      console.log(`Erro em atualizar o log de deploy: ${err}`);
+      printError('Erro em atualizar o log de deploy', err);
       process.exit(1);
     }
   }
@@ -151,7 +143,7 @@ function Main() {
 
   credentialUse = CREDENTIALS[configs.ENV.AMB];
 
-  console.log('Iniciando processo de deploy...');
+  printStep('Iniciando processo de deploy...');
   for(let item of itensInDir) {
     if (!item.includes('.ccc')) {
       util.getFile(item, configs.ENV.DEPLOY_TO, callbackPathFile);

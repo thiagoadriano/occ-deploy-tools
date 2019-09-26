@@ -1,5 +1,6 @@
 const fs = require('fs'),
-      path = require('path');
+      path = require('path'),
+      {printError} = require('./print-console');
 
 
 function getFile(item, filePath, cb) {
@@ -22,7 +23,7 @@ function getFile(item, filePath, cb) {
       getFile(item, filePath, cb);
     }
   } catch(error) {
-    console.log(`Erro ao obter arquivo: ${error}`);
+    printError('Erro ao identificar o  arquivo:', error);
     cb(null);
   }
 }

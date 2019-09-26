@@ -1,8 +1,9 @@
 const fs = require('fs'),
       path = require('path');
 
-let configs = require('./constants/configs');
-let util = require('./helper/util');
+let configs = require('./constants/configs'),
+    util = require('./helper/util'),
+    { printInfo, printError, printStep } = require('./helper/print-console');
 
 let date = new Date();
 
@@ -10,13 +11,13 @@ function initFluxDeploy(notGrab = false) {
   let copyFiles = require('./copy-files');
   let deploy = require('./deploy');
   let grabs = require('./grab');
-  
+
   let fileProp = path.normalize(`${configs.FOLDERS.ROOT_FOLDER}/${configs.NAME_FILE_PROPERTIES}`);
 
-  console.log('Checando informações no arquivo de deploy');
+  printStep('Checando informações no arquivo de deploy...');
   fs.readFile(fileProp, (err, data) => {
     if(err) {
-      console.log(err);
+      printError('Erro ao encontrar o arquivo com informações para deploy.', err);
       return;
     }
   
@@ -32,11 +33,12 @@ function initFluxDeploy(notGrab = false) {
       return item.split('|');
     });
 
+    printInfo('Informações checadas!');
     if (notGrab) {
       copyFiles(listContent);
       deploy();
     } else {
-      console.log('Iniciando Grab...');
+      printStep('Iniciando Grab...');
       grabs(() => {
         copyFiles(listContent);
         deploy();
@@ -50,7 +52,7 @@ function initFluxRollBack() {
 }
 
 function logInformationUseFileDeploy() {
-  console.log(`
+  printInfo(`
       Execução finalizada por não ter sido informado arquivos para o deploy.
       Use o arquivo ${configs.NAME_FILE_PROPERTIES} para informar os arquivos que serão enviados ao OCC.
       Use o exemplo a seguir para enviar um widget e sua instancia:
@@ -59,7 +61,8 @@ function logInformationUseFileDeploy() {
       Caso precise enviar outro arquivo como o less do template, basta apenas informar sua localização como no exemplo:
       theme|NOME_DO_TEMA|theme.less
       
-      Adicione quantos arquivos precisar todos em linhas separadas.`);
+      Adicione quantos arquivos precisar todos em linhas separadas.
+  `);
 }
 
 function configExecutionTimer() {
@@ -103,7 +106,7 @@ function createStructureDeploy() {
       fs.mkdirSync(folderNormalize, {recursive: true});
     }
   } catch (error) {
-    console.error(`Não foi possível criar a strutura: ${error}`);
+    printError('Não foi possível criar a strutura:', error);
     process.exit(1);
   }
 
@@ -121,14 +124,17 @@ function createStructureDeploy() {
 }
 
 function Main(amb) {
-  console.log('Configurando data e hora');
+  printStep('Configurando data e hora...');
   configExecutionTimer();
+  printInfo('Data e hora configurado!');
 
-  console.log('Configurando dados de ambientes');
+  printStep('Configurando variáveis de execução...');
   configEnv(amb);
+  printInfo('Variáveis de execução configuradas!');
 
-  console.log('Configurando estrutura de diretórios');
+  printStep('Configurando estrutura de diretórios...');
   createStructureDeploy();
+  printInfo('Estrutura de diretório configurada!');
 }
 
 module.exports = { Main, initFluxDeploy, initFluxRollBack };

@@ -2,7 +2,8 @@ const
     fs = require('fs'),
     path = require('path'),
     configs = require('./constants/configs'),
-    util = require('./helper/util');
+    util = require('./helper/util'),
+    { printInfo, printError, printStep } = require('./helper/print-console');
 
 let 
   filesToDeploy = new Set(),
@@ -64,7 +65,7 @@ function execCopyFile(listFiles = [], pathFromCopy = "", pathToCopy = "") {
       fs.copyFileSync(file, copyFile);
       
     } catch(err) {
-      console.error(`Erro ao realizar a operação: ${err}`);
+      printError('Erro ao realizar a operação de copiar arquivo:', err);
       process.exit(1);
     }
   }
@@ -87,17 +88,21 @@ function generatePaths(list) {
 
 function Main(list = []) {
   if (list.length > 0 && list[0]) {
-    console.log('Iniciando separação de arquivos...');
+    printStep('Iniciando identificação dos arquivos...');
     generatePaths(list);
+    printInfo('Concluído a identificação dos arquivos!');
 
-    console.log('Copiando os arquivos de rollback...');
+    printStep('Copiando os arquivos de rollback...');
     execCopyFile(filesToBackup, configs.ENV.BACKUP_FROM, configs.ENV.BACKUP_TO);
+    printInfo('Concluído a copia dos arquivos de rollback!');
 
-    console.log('Copiando os arquivos para deploy...');
+    printStep('Copiando os arquivos para deploy...');
     execCopyFile(filesToDeploy, configs.ENV.DEPLOY_FROM, configs.ENV.DEPLOY_TO);
+    printInfo('Concluído a copia dos arquivos para deploy!');
 
-    console.log('Copiando os arquivos de versionamento do occ...');
+    printStep('Copiando os arquivos de versionamento do occ...');
     copyFileCCC();
+    printInfo('Cuncluído a copia dos arquivos de versionamento do occ!');
   }
 }
 
