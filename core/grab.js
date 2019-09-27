@@ -1,56 +1,33 @@
 const path = require('path'),
       fs = require('fs'),
       CREDENTIALS = require('./constants/credentials'),
-      configs = require('./constants/configs');
+      configs = require('./constants/configs'),
+      {loggerGrabInstance} = require('./helper/logger'),
+      {printInfo, printInfoAmb, printErrorAmb, printWarn} = require('./helper/print-console');
 
 let finishAMB = { };
 let callBack = null;
+let logger = {};
 let AMBS_EXEC = ['TEST', 'STAGE', 'PROD'];
 
 function logStream(key, data) {
-  console.log(`------------------------------------------------------- LOG STREAM ${key} ------------------------------------------------------
-      Baixado do ambiente ${key}: 
-      ${data.toString()}------------------------------------------------------------------------------------------------------------------------------`); 
+  printInfoAmb(key, data.toString());
+  logger[key].info(data.toString());
 }
 
 function logError(key, data) {
-  console.error(`=======================================================
-  Erro no ambiente ${key}: 
-  ${data.toString()}
-=======================================================
-`);
+  printErrorAmb(key, data);
+  logger[key].error(data.toString());
 }
 
 function logClose(key, code) {
   if (code) {
-    console.log(`
-=======================================================
-    Erro no processamento no ambiente ${key} com code ${code}
-=======================================================
-    `); 
+    printWarn(`Foi finalizado o grab com erro no ambiente ${key} com code ${code}`);
   } else {
-  console.log(`
-=======================================================
-  Finalizado grab no ambiente ${key} 
-=======================================================
-`); 
-
+    printInfo(`Finalizado grab no ambiente ${key}`);
     finishAMB[key] = true;
     execCallBack();
   }
-}
-
-function prepareLog(args, key) {
-  let pathLog = path.normalize(`${consfigs.FOLDERS.LOGS}${configs.EXEC_DATE_TIME.DATE}`);
-  try {
-    fs.readdirSync(pathLog);
-  } catch(e) {
-    fs.mkdirSync(pathLog);
-  }
-
-  let log = path.normalize(`${pathLog}/log-${configs.EXEC_DATE_TIME.TIME}-ambiente-${key.toUpperCase()}.log`);
-  args.push('>>', log);
-  console.log(`Iniciado o Grab com log sendo gravado em: ${log}`);
 }
 
 function execCallBack() {
@@ -58,19 +35,15 @@ function execCallBack() {
   let isNotFinish = listAmb.some(x => !x[1]);
 
   if(!isNotFinish && callBack) {
+    printInfo('Grab concluído!');
     callBack();
   }
 }
 
-function execGrab(grabIn, longInFile) {
+function execGrab(grabIn) {
   for(let key of grabIn) {
     let { exec } = require('child_process');
     let args = ['--node', CREDENTIALS[key].URL, '--applicationKey', CREDENTIALS[key].KEY, '-g'];
-
-    if(longInFile) {
-      prepareLog(args, key);
-    }
-    
     let comand = exec(`dcu ${args.join(' ')}`, { cwd: path.normalize(configs.FOLDERS[key]) });
 
     comand.stdout.on('data', logStream.bind(null, key));
@@ -79,9 +52,10 @@ function execGrab(grabIn, longInFile) {
   }
 }
 
-function generateCheckSuccess(listAmbs) {
-  for(let amb in listAmbs) {
-    finishAMB[ listAmbs[amb] ] = false;
+function generateValuesEnviroments(listAmbs) {
+  for(let amb of listAmbs) {
+    finishAMB[amb] = false;
+    logger[amb] = loggerGrabInstance(amb);
   }
 }
 
@@ -94,8 +68,8 @@ function Main(cb) {
     AMBS_EXEC = ['TEST', 'STAGE'];
   } 
 
-  generateCheckSuccess(AMBS_EXEC);
-  execGrab(AMBS_EXEC, configs.ENV.USE_LOGS_IN_FILE);
+  generateValuesEnviroments(AMBS_EXEC);
+  execGrab(AMBS_EXEC);
 }
 
 module.exports = Main;

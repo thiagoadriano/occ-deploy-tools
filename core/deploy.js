@@ -33,10 +33,8 @@ function deployFile(file) {
 }
 
 function logStream(file, data) {
-  let msg = `Fluxo de envio: ${data.toString()}`;
-  
-  printInfo(msg);
-  loggerDeploy.info(msg);
+  printInfo('Fluxo de envio:', data.toString());
+  loggerDeploy.info(`Fluxo de envio: ${data.toString()}`);
 
   if (data.includes('encontrado na interface de administração do Commerce Cloud de destino') && data.includes('A operação demorou')) {
     setStatus(file, STATUS.SENT);
@@ -47,13 +45,27 @@ function logStream(file, data) {
 }
 
 function logError(file, data) {
-  let msg = `Erro ao enviar o arquivo: ${file} | ${data.toString()}`;
-  printError(msg);
-  loggerDeploy.error(msg);
+  let pathUnix = file.replace(/\\/g, '/');
+  data = data.toString().replace(/\r?\n$/, '');
+  
+  let dataError = data;
+  
+  if (data.startsWith('TypeError')) {
+    let position = data.indexOf('\n');
+    dataError = data.substring(0,position);
+  } 
+  else if (data.indexOf(pathUnix) > -1) {
+    let position = data.indexOf(pathUnix) + 1;
+    dataError = data.substring(position + pathUnix.length);
+  }
+  
+  printError(`Erro ao enviar o arquivo: ${file} | ${dataError}`);
+  loggerDeploy.error(`Erro ao enviar o arquivo: ${file} | ${data}`);
 
   if (!data.includes('Invalid operation on a non-internationalized Widget')) {
-    setStatus(file, STATUS.ERROR, data);
+    setStatus(file, STATUS.ERROR, dataError);
   }
+
 }
 
 function logClose(file, code) {
