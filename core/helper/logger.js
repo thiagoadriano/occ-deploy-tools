@@ -12,6 +12,19 @@ let loggerDeploy = createLogger({
   ]
 });
 
+let loggerCriateWidget = createLogger({
+  transports: [
+    new transports.File({
+      filename: `${configs.FOLDERS.LOGS}/${configs.EXEC_DATE_TIME.DATE}/report-createWidget-${configs.EXEC_DATE_TIME.TIME}.log`,
+      level: 'info',
+    }),
+    new transports.File({
+      filename: `${configs.FOLDERS.LOGS}/${configs.EXEC_DATE_TIME.DATE}/report-createWidget-error-${configs.EXEC_DATE_TIME.TIME}.log`,
+      level: 'error',
+    })
+  ]
+});
+
 let loggerGrabInstance = function(amb) {
   return createLogger({
     transports: [
@@ -27,4 +40,4 @@ let loggerGrabInstance = function(amb) {
   });
 };
 
-module.exports = {loggerDeploy, loggerGrabInstance};
+module.exports = {loggerDeploy, loggerGrabInstance, loggerCriateWidget};

@@ -5,6 +5,7 @@ const fs = require('fs'),
       configs = require('./constants/configs'),
       util = require('./helper/util'),
       { loggerDeploy } = require('./helper/logger'),
+      {createWidget, existsWidget} = require('./create-widget'),
       {printStep, printInfo, printError} = require('./helper/print-console');
 
 const STATUS = {
@@ -21,15 +22,14 @@ let reportFiles = [];
 let totalFiles = 0;
 
 function deployFile(file) {
-  let fileRelativePath = path.normalize(file.replace(configs.ENV.DEPLOY_TO, ''));
-  let args = ['--node', credentialUse.URL,  '--applicationKey', credentialUse.KEY, '--transfer', `"${fileRelativePath}"`];
+  let args = ['--node', credentialUse.URL,  '--applicationKey', credentialUse.KEY, '--transfer', `"${file}"`];
   let command = exec(`dcu ${args.join(' ')}`, {cwd: configs.ENV.DEPLOY_TO});
 
   setStatus(file, STATUS.STARTED);
 
-  command.stdout.on('data', logStream.bind(null, fileRelativePath));
-  command.stderr.on('data', logError.bind(null, fileRelativePath));
-  command.on('close', logClose.bind(null, fileRelativePath));
+  command.stdout.on('data', logStream.bind(null, file));
+  command.stderr.on('data', logError.bind(null, file));
+  command.on('close', logClose.bind(null, file));
 }
 
 function logStream(file, data) {
@@ -85,20 +85,26 @@ function logClose(file, code) {
 }
 
 function callbackPathFile(filePath) {
+  if (!filePath) return;
+
+  let file = path.normalize(filePath.replace(configs.ENV.DEPLOY_TO, ''));
+
   reportFiles.push({
-    file: filePath.replace(configs.ENV.DEPLOY_TO, ''),
+    file: file,
     status: STATUS.NOT_STARTED,
     msg: ''
   });
 
-  deployFile(filePath);
+  if (file.startsWith('widget') && !existsWidget(file)) {
+    createWidget(file, credentialUse.URL, deployFile);
+  } else {
+    deployFile(file);
+  }
 }
 
 function setStatus(file, status, dataFail) {
-  let queryFile = file.replace(configs.ENV.DEPLOY_TO, '');
-  
   for (let report of reportFiles) {
-    if (report.file === queryFile && report.status !== STATUS.ERROR) {
+    if (report.file === file && report.status !== STATUS.ERROR) {
       report.status = status;
 
       if (dataFail) report.msg = dataFail;
