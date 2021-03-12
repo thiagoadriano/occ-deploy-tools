@@ -46,6 +46,10 @@ function logStream(file, data) {
 
 function logError(file, data) {
   let pathUnix = file.replace(/\\/g, '/');
+  let msgInvalid = {
+    FAIL_WIDE: 'A conexão foi redefinida inesperadamente pelo servidor',
+    FAIL_INTERNALIZED: 'Invalid operation on a non-internationalized Widget'
+  }
   data = data.toString().replace(/\r?\n$/, '');
   
   let dataError = data;
@@ -62,7 +66,10 @@ function logError(file, data) {
   printError(`Erro ao enviar o arquivo: ${file} | ${dataError}`);
   loggerDeploy.error(`Erro ao enviar o arquivo: ${file} | ${data}`);
 
-  if (!data.includes('Invalid operation on a non-internationalized Widget')) {
+  if (
+    !data.includes(msgError.FAIL_INTERNALIZED) &&
+    !data.includes(msgError.FAIL_WIDE)
+  ) {
     setStatus(file, STATUS.ERROR, dataError);
   }
 
@@ -133,7 +140,8 @@ function populateDeployInfoFile() {
       contentFile += generateLogFile(listDeploy.success, listDeploy.error);
       fs.writeFileSync(fileControl, contentFile);
 
-      printInfo('Deploy Concluído!');
+      printInfo('Deploy Concluído! E levou:');
+      console.timeEnd('Operação de Deploy');
     } catch (err) {
       printError('Erro em atualizar o log de deploy', err);
       process.exit(1);

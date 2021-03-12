@@ -5,7 +5,7 @@ let configs = {
   ENV: {}
 };
 
-const ROOT_BASE = 'c:/OCC_DEPLOY/';
+const ROOT_BASE = 'c:/OCC_TESTE_DEPLOY/';
 
 // used in search folders by call files
 configs.FOLDERS.ROOT_FOLDER = ROOT_BASE;

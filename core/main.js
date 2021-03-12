@@ -124,6 +124,7 @@ function createStructureDeploy() {
 }
 
 function Main(amb) {
+  console.time('Operação de Deploy');
   printStep('Configurando data e hora...');
   configExecutionTimer();
   printInfo('Data e hora configurado!');

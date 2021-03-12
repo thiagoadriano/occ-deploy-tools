@@ -1,9 +1,4 @@
-.idea/.gitignore
-.idea/deploy.iml
-.idea/jsLibraryMappings.xml
-.idea/misc.xml
-.idea/vcs.xml
-.idea/modules.xml
+.idea/
 .vscode/
 node_modules/
-.idea/dictionaries/
+.history/

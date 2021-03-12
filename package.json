@@ -1,16 +1,22 @@
 {
   "name": "occ-tools-deploy",
   "version": "0.0.1",
-  "description": "Ferramenta para ações de deploy no OCC",
+  "description": "Ferramenta de extensão do DCU para ações de deploy no OCC",
   "main": "index.js",
   "preferGlobal": true,
   "bin": {
     "occtools": "index.js"
   },
   "scripts": {
-    "start": "node index.js"
+    "deploy": "node index.js deploy",
+    "deploy:noGrab": "node index.js deploy --nograb",
+    "deploy:prod": "node index.js deploy --inProd",
+    "deploy:prod:noGrab": "node index.js deploy --inProd --nograb"
   },
-  "author": "Thiago Adriano",
+  "author": {
+    "name": "Thiago Adriano",
+    "email": "thiago.s.adriano@gmail.com"
+  },
   "license": "ISC",
   "dependencies": {
     "chalk": "^2.4.2",

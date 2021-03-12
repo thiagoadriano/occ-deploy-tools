@@ -1,5 +1,4 @@
 const path = require('path'),
-      fs = require('fs'),
       CREDENTIALS = require('./constants/credentials'),
       configs = require('./constants/configs'),
       {loggerGrabInstance} = require('./helper/logger'),
